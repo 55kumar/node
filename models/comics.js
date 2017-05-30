@@ -1,6 +1,6 @@
 // Load required packages
-var mongoose = require('mongoose'),
-    Schema = mongoose.Schema;
+var mongoose = require('mongoose');
+    var Schema = mongoose.Schema;
 
 // Define our user schema
 var comics_schema = new Schema({

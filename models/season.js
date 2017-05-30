@@ -1,6 +1,7 @@
 // Load required packages
-var mongoose = require('mongoose').Schema = mongoose.Schema;
-var autoIncrement = require('mongoose-auto-increment');
+var mongoose = require('mongoose')
+var Schema = mongoose.Schema;
+
 
 
 // Define our season schema

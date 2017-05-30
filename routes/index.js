@@ -12,12 +12,14 @@ router.route('/v1/users') // Route to Post and Get Data From and To Users
 
 router.route('/v1/comics') // Route to Post and Get Data From and To comics
   .post(userController.postcomics)
-  .get(userController.getcomics);
+  .get(userController.getcomics)
+  .delete(userController.deletecomics)
 
 
 router.route('/v1/seasons') // Route to Post and Get Data From and To seasons
   .post(userController.postseason)
-  .get(userController.getseason);
+  .get(userController.getseason)
+  .delete(userController.deleteseasons)
 
 router.route('/v1/Search/:reg') // Search the data
   .get(userController.SearchData);
@@ -27,8 +29,15 @@ router.route('/v1/Check') // Route to Check the user is valid or not
 
 router.route('/v1/series') // Route to Post and Get Data From and To series
   .post(userController.postseries)
-  .get(userController.getseries);
+  .get(userController.getseries)
+  .delete(userController.deleteseries)
 
 
+router.route('/v1/seasons/:series_id')
+.get(userController.getseasonbyid)
+
+
+router.route('/v1/comics/:season_id')
+.get(userController.getcomicsbyid)
 
 module.exports = router; // Exporting router
