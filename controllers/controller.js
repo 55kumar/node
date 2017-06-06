@@ -1,15 +1,17 @@
 // Get the Schemas We need to Enter the Data in their respective keys
 var User = require("../models/users");
-var comics = require("../models/comics");
-var seasons = require("../models/season");
-var series = require("../models/series");
+var Comics = require("../models/comics");
+var Seasons = require("../models/season");
+var Series = require("../models/series");
+var md5 = require('md5');
+var jwt = require('jsonwebtoken');
 
 exports.SearchData = function (req, res) {
     console.log(req.params.reg);
     var regex = RegExp(req.params.reg);
 
-    comics.find({
-        H_Data: regex
+    Comics.find({
+        name: regex
     }, function (err, response) {
         if (err) {
             return res.json(req, res, err);
@@ -18,33 +20,46 @@ exports.SearchData = function (req, res) {
             return res.json("doesn't exit");
         }
         return res.json(response);
+
     })
 };
 
 exports.postUsers = function (req, res) { // Function to Post the Data in Users Collection of Database
-    a = User.find({}).sort({id:-1}).limit(1);
-    a = a[0];
-    a = a.id;
-    var user = new User({ // Making Object of Users schema 
-        email: req.body.email,
-        password: req.body.password,
-        role: req.body.role,
-        id : a + 1
-        
-
-    });
-
-    user.save(function (err, response) { // Saving the Data into the Database
+    User.find({}, function (err, response) { // Function to Find all the Users from collection 
         if (err) {
             return res.json(req, res, err);
         }
+        a = response[0].id
 
-        res.json({
-            success: true,
-            body: response
-        })
+        var user = new User({ // Making Object of Users schema 
+            email: req.body.email,
+            password: md5(req.body.password),
+            role: req.body.role,
+            id: a + 1,
 
-    });
+
+        });
+        console.log(user);
+
+
+
+        user.save(function (err, response) { // Saving the Data into the Database
+            if (err) {
+                return res.json(req, res, err);
+            }
+
+            res.json({
+                success: true,
+                body: response
+            })
+
+        });
+
+
+
+    }).sort({
+        id: -1
+    }).limit(1);
 };
 
 exports.CheckUsers = function (req, res) {
@@ -53,24 +68,28 @@ exports.CheckUsers = function (req, res) {
     console.log(username1);
     var a = User.findOne({
         username: username1,
-        password: password1
+        password: md5(password1)
     }, function (err, response) {
         if (err) {
             return res.json({
-                "status": "false"});
+                "status": "false"
+            });
         } else {
             if (response.length == 0)
                 return res.json({
-                "status": "false",
-            "message" : "user not found"
-        });
-            else{
+                    "status": "false",
+                    "message": "user not found"
+                });
+            else {
+                var token = jwt.sign({role : response.role}, "salt")
                 return res.json({
-                "status": "true",
-                 "role" : response.role,
-                 "meassage" : "logged in"    
-        });
-        console.log(a);
+                    "status": "true",
+                    "role": response.role,
+                    "meassage": "logged in",
+                    "token" : token
+
+                });
+                console.log(a);
             }
         }
     });
@@ -81,7 +100,11 @@ exports.CheckUsers = function (req, res) {
 
 
 exports.getUsers = function (req, res) { // Function to Get the data from users
-    User.find({}, function (err, response) { // Function to Find all the Users from collection 
+    User.find({
+        "role": {
+            $ne: "SA"
+        }
+    }, function (err, response) { // Function to Find all the Users from collection 
         if (err) {
             return res.json(req, res, err);
         }
@@ -90,85 +113,109 @@ exports.getUsers = function (req, res) { // Function to Get the data from users
 }
 
 
-exports.postcomics = function (req, res) { // Function to Post the comics
-    a = User.find({}).sort({comic_id:-1}).limit(1);
-    a = a[0];
-    a = a.id;
-    var comics = new comics({ // Making Object of comics schema 
-        name: req.body.name,
-        comic_id: a+1,
-        season_id: req.body.season_id,
-        series_id: req.body.series_id
-    });
-    title.save(function (err, response) { // Saving the Data into the Database
+
+
+exports.postcomics = function (req, res) { // Function to Post the Data in Users Collection of Database
+    Comics.find({}, function (err, response) { // Function to Find all the Users from collection 
         if (err) {
             return res.json(req, res, err);
         }
-        return res.json({
-            success: true,
-            body: response
+        a = response[0].comic_id
+        var comics = new Comics({ // Making Object of comics schema 
+            name: req.body.name,
+            comic_id: a + 1,
+            season_id: req.body.season_id,
+            series_id: req.body.series_id
         });
+        comics.save(function (err, response) { // Saving the Data into the Database
+            if (err) {
+                return res.json(req, res, err);
+            }
 
-    });
-};
+            res.json({
+                success: true,
+                body: response
+            })
 
-
-
-
-exports.postseason = function (req, res) { // Function to post all the season to the collection 
-    a = User.find({}).sort({season_id:-1}).limit(1);
-    a = a[0];
-    a = a.id;
-    var Season = new seasons({ // Making Object of season Schema
-        name: req.body.name,
-        season_id: a+1,
-        series_id: req.body.series_id
-
-    });
-    Season.save(function (err, response) { // Saving the season into the Database
-        if (err) {
-            return res.json(req, res, err);
-        }
-
-        res.json({
-            success: true,
-            body: response
         });
-
-    });
-};
-
-
-
-exports.postseries = function (req, res) { // Function to post all the series to the collection 
-    a = User.find({}).sort({series_id:-1}).limit(1);
-    a = a[0];
-    a = a.id;
-    var Series = new series({ 
-        name: req.body.name,
-        series_id: a+1
-
-    });
-    Series.save(function (err, response) { // Saving the series into the Database
-        if (err) {
-            return res.json(req, res, err);
-        }
-
-        res.json({
-            success: true,
-            body: response
-        });
-
-    });
+    }).sort({
+        comic_id: -1
+    }).limit(1);
 }
 
 
 
-exports.getcomics = function (req, res) { // Function to Get the comics from database
-    
 
-    
-    comics.find({}, function (err, response) { // Function to Find all the comics from collection 
+
+exports.postseason = function (req, res) { // Function to Post the Data in Users Collection of Database
+    Seasons.find({}, function (err, response) { // Function to Find all the Users from collection 
+        if (err) {
+            return res.json(req, res, err);
+        }
+        a = response[0].season_id
+        var season = new Seasons({ // Making Object of season Schema
+            name: req.body.name,
+            season_id: a + 1,
+            series_id: req.body.series_id
+
+        });
+        season.save(function (err, response) { // Saving the Data into the Database
+            if (err) {
+                return res.json(req, res, err);
+            }
+
+            res.json({
+                success: true,
+                body: response
+            })
+
+        });
+    }).sort({
+        season_id: -1
+    }).limit(1);
+}
+
+
+
+
+
+
+exports.postseries = function (req, res) { // Function to Post the Data in Users Collection of Database
+    Series.find({}, function (err, response) { // Function to Find all the Users from collection 
+        if (err) {
+            return res.json(req, res, err);
+        }
+        a = response[0].series_id
+        var series = new Series({
+            name: req.body.name,
+            series_id: a + 1
+
+        });
+        series.save(function (err, response) { // Saving the Data into the Database
+            if (err) {
+                return res.json(req, res, err);
+            }
+
+            res.json({
+                success: true,
+                body: response
+            })
+
+        });
+    }).sort({
+        series_id: -1
+    }).limit(1);
+}
+
+
+
+
+
+exports.getcomics = function (req, res) { // Function to Get the comics from database
+
+
+
+    Comics.find({}, function (err, response) { // Function to Find all the comics from collection 
         if (err) {
             return res.json(req, res, err);
         }
@@ -179,9 +226,9 @@ exports.getcomics = function (req, res) { // Function to Get the comics from dat
 
 
 exports.getseries = function (req, res) { // Function to Get the data from series
-   
 
-    series.find({}, function (err, response) { // Function to Find all the series
+
+    Series.find({}, function (err, response) { // Function to Find all the series
         if (err) {
             return res.json(req, res, err);
         }
@@ -191,7 +238,7 @@ exports.getseries = function (req, res) { // Function to Get the data from serie
 };
 
 exports.getseason = function (req, res) { // Function to Get the data from season
-    seasons.find({}, function (err, response) { // Function to Find all the seasons
+    Seasons.find({}, function (err, response) { // Function to Find all the seasons
         if (err) {
             return res.json(req, res, err);
         }
@@ -216,8 +263,10 @@ exports.getseason = function (req, res) { // Function to Get the data from seaso
 exports.getcomicsbyid = function (req, res) { // Function to Get the comics from database
     id = req.params.season_id
 
-    
-    comics.find({season_id : id}, function (err, response) { // Function to Find all the comics from collection 
+
+    Comics.find({
+        season_id: id
+    }, function (err, response) { // Function to Find all the comics from collection 
         if (err) {
             return res.json(req, res, err);
         }
@@ -230,7 +279,9 @@ exports.getcomicsbyid = function (req, res) { // Function to Get the comics from
 
 exports.getseasonbyid = function (req, res) { // Function to Get the data from season
     id = req.params.series_id;
-    seasons.find({series_id : id}, function (err, response) { // Function to Find all the seasons
+    Seasons.find({
+        series_id: id
+    }, function (err, response) { // Function to Find all the seasons
         if (err) {
             return res.json(req, res, err);
         }
@@ -262,9 +313,12 @@ exports.updateUsers = function (req, res) {
             res.json(err);
         }
 
-        var username = req.body.username;
-        user.username = username;
-        user.updated_at = new Date();
+        var email = req.body.email;
+        user.email = email;
+
+        var password = md5(req.body.password) || user.password;
+        user.password = password;
+        // user.updated_at = new Date();
 
         user.save(function (err, response) {
             if (err) {
@@ -277,28 +331,30 @@ exports.updateUsers = function (req, res) {
 }
 
 exports.deleteUsers = function (req, res) {
-        id1 = req.body.id;
-        User.findOne({
-            id: id1
-        }, function (err, user) {
-            if (err) {
-                res.json(err);
-            }
+    console.log("delete user api hit");
+    id1 = req.params.id;
+    console.log(req.body);
+    User.findOne({
+        id: id1
+    }, function (err, user) {
+        if (err) {
+            res.json(err);
+        }
 
-            if (user) {
-                User.remove({
-                    id: id1
-                }, function (err) {
-                    if (err) {
-                        res.json(err);
-                    }
+        if (user) {
+            User.remove({
+                id: id1
+            }, function (err) {
+                if (err) {
+                    res.json(err);
+                }
 
-                    res.json("success");
-                })
-            } else {
-                res.json("User doesnt exist");
-            }
-        })
+                res.json("success");
+            })
+        } else {
+            res.json("User doesnt exist");
+        }
+    })
 }
 
 
@@ -309,78 +365,238 @@ exports.deleteUsers = function (req, res) {
 
 
 exports.deletecomics = function (req, res) {
-        id1 = req.body.comics_id;
-        comics.findOne({
-            id: id1
-        }, function (err, user) {
-            if (err) {
-                res.json(err);
-            }
+    id1 = req.params.id;
+    Comics.findOne({
+        comic_id: id1
+    }, function (err, user) {
+        if (err) {
+            res.json(err);
+        }
 
-            if (user) {
-                User.remove({
-                    id: id1
-                }, function (err) {
-                    if (err) {
-                        res.json(err);
-                    }
+        if (user) {
+            Comics.remove({
+                comic_id: id1
+            }, function (err) {
+                if (err) {
+                    res.json(err);
+                }
 
-                    res.json("success");
-                })
-            } else {
-                res.json("User doesnt exist");
-            }
-        })
+                res.json("success");
+            })
+        } else {
+            res.json("User doesnt exist");
+        }
+    })
 }
 
 
 exports.deleteseasons = function (req, res) {
-        id1 = req.body.season_id;
-        seasons.findOne({
-            id: id1
-        }, function (err, user) {
-            if (err) {
-                res.json(err);
-            }
+    id1 = req.params.id;
+    Seasons.findOne({
+        season_id: id1
+    }, function (err, user) {
+        if (err) {
+            res.json(err);
+        }
 
-            if (user) {
-                User.remove({
-                    id: id1
-                }, function (err) {
-                    if (err) {
-                        res.json(err);
-                    }
+        if (user) {
+            Seasons.remove({
+                season_id: id1
+            }, function (err) {
+                if (err) {
+                    res.json(err);
+                }
 
-                    res.json("success");
-                })
-            } else {
-                res.json("User doesnt exist");
-            }
-        })
+                res.json("success");
+            })
+        } else {
+            res.json("User doesnt exist");
+        }
+    })
+
+    Comics.find({
+        season_id: id1
+    }, function (err, user) {
+        if (err) {
+            res.json(err);
+        }
+
+        if (user) {
+            Comics.remove({
+                season_id: id1
+            }, function (err) {
+                if (err) {
+                    res.json(err);
+                }
+
+                res.json("success");
+            })
+        } else {
+            res.json("User doesnt exist");
+        }
+    })
+
 }
 
 
 exports.deleteseries = function (req, res) {
-        id1 = req.body.series_id;
-        series.findOne({
-            id: id1
-        }, function (err, user) {
+    id1 = req.params.id;
+    Series.findOne({
+        series_id: id1
+    }, function (err, user) {
+        if (err) {
+            res.json(err);
+        }
+
+        if (user) {
+            Series.remove({
+                series_id: id1
+            }, function (err) {
+                if (err) {
+                    res.json(err);
+                }
+
+                res.json("success");
+            })
+        } else {
+            res.json("User doesnt exist");
+        }
+    })
+
+
+    Seasons.find({
+        series_id: id1
+    }, function (err, user) {
+        if (err) {
+            res.json(err);
+        }
+
+        if (user) {
+            Seasons.remove({
+                series_id: id1
+            }, function (err) {
+                if (err) {
+                    res.json(err);
+                }
+
+                res.json("success");
+            })
+        } else {
+            res.json("User doesnt exist");
+        }
+    })
+
+    Comics.find({
+        series_id: id1
+    }, function (err, user) {
+        if (err) {
+            res.json(err);
+        }
+
+        if (user) {
+            Comics.remove({
+                series_id: id1
+            }, function (err) {
+                if (err) {
+                    res.json(err);
+                }
+
+                res.json("success");
+            })
+        } else {
+            res.json("User doesnt exist");
+        }
+    })
+
+
+}
+
+
+
+
+
+exports.updateseries = function (req, res) {
+    var id1 = req.body.series_id;
+    Series.findOne({
+        series_id: id1
+    }, function (err, series) {
+        if (err) {
+            res.json(err);
+        }
+
+        var name = req.body.name || series.name;
+        series.name = name;
+
+
+        // user.updated_at = new Date();
+
+        series.save(function (err, response) {
             if (err) {
                 res.json(err);
             }
 
-            if (user) {
-                User.remove({
-                    id: id1
-                }, function (err) {
-                    if (err) {
-                        res.json(err);
-                    }
-
-                    res.json("success");
-                })
-            } else {
-                res.json("User doesnt exist");
-            }
+            res.json(response);
         })
+    })
+}
+ 
+
+exports.updateseasons = function (req, res) {
+    var id1 = req.body.season_id;
+    Seasons.findOne({
+        season_id: id1
+    }, function (err, season) {
+        if (err) {
+            res.json(err);
+        }
+
+        var name = req.body.name || season.name;
+        season.name = name;
+        var seriesid = req.body.series_id || season.series_id;
+        season.series_id = seriesid;
+
+
+
+        // user.updated_at = new Date();
+
+        season.save(function (err, response) {
+            if (err) {
+                res.json(err);
+            }
+
+            res.json(response);
+        })
+    })
+}
+
+
+
+
+
+exports.updatecomics = function (req, res) {
+    var id1 = req.body.comic_id;
+    Comics.findOne({
+        comic_id: id1
+    }, function (err, comic) {
+        if (err) {
+            res.json(err);
+        }
+
+        var name = req.body.name || comic.name;
+        comic.name = name;
+        var seriesid = req.body.series_id || comic.series_id;
+        comic.series_id = seriesid;
+        var seasonid = req.body.season_id || comic.season_id;
+        comic.season_id = seasonid;
+
+        // user.updated_at = new Date();
+
+        comic.save(function (err, response) {
+            if (err) {
+                res.json(err);
+            }
+
+            res.json(response);
+        })
+    })
 }

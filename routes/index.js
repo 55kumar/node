@@ -6,20 +6,28 @@ var userController = require('../controllers/controller'); //Making Object of Co
 router.route('/v1/users') // Route to Post and Get Data From and To Users
   .post(userController.postUsers)
   .get(userController.getUsers)
-  .delete(userController.deleteUsers)
   .put(userController.updateUsers)
+
+router.route('/v1/users/:id') 
+.delete(userController.deleteUsers)
 
 
 router.route('/v1/comics') // Route to Post and Get Data From and To comics
   .post(userController.postcomics)
   .get(userController.getcomics)
-  .delete(userController.deletecomics)
-
+  .put(userController.updatecomics)
+  
+router.route('/v1/comics/:id') 
+.delete(userController.deletecomics)
 
 router.route('/v1/seasons') // Route to Post and Get Data From and To seasons
   .post(userController.postseason)
   .get(userController.getseason)
-  .delete(userController.deleteseasons)
+  .put(userController.updateseasons)
+  
+
+  router.route('/v1/seasons/:id')
+.delete(userController.deleteseasons)
 
 router.route('/v1/Search/:reg') // Search the data
   .get(userController.SearchData);
@@ -30,7 +38,11 @@ router.route('/v1/Check') // Route to Check the user is valid or not
 router.route('/v1/series') // Route to Post and Get Data From and To series
   .post(userController.postseries)
   .get(userController.getseries)
-  .delete(userController.deleteseries)
+  .put(userController.updateseries)
+ 
+router.route('/v1/series/:id')
+ .delete(userController.deleteseries)
+
 
 
 router.route('/v1/seasons/:series_id')

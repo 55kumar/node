@@ -2,6 +2,12 @@
 var express = require('express');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
+var expressjwt = require('express-jwt');
+// var jwt = require('jsonwebtoken');
+var auth = require('./auth.json');
+
+
+
 
 //var Regex = require("regex");
 // Connect to the MongoDB
@@ -9,7 +15,7 @@ var connection=mongoose.connect('mongodb://localhost:27017/Manga');
 
 // Create Express application
 var app = module.exports = express();
-
+app.use(expressjwt({secret : auth.secret}).unless({path : ['/api/v1/Check', '/api/v1/users']}))
 var NODE_ENV = 'development';
 //Set Variables
 app.set('env', process.env.NODE_ENV || 'production');
