@@ -8,6 +8,7 @@ var jwt = require('jsonwebtoken');
 var email = require ('../email.json');
 const nodemailer = require('nodemailer');
 var temp = require('../models/tempuseres')
+var auth = require('../auth.json');
 
 exports.SearchData = function (req, res) {
     console.log(req.params.reg);
@@ -75,18 +76,20 @@ exports.CheckUsers = function (req, res) {
                 "status": "false"
             });
         } else {
-            if (response.length == 0)
+            if (response === undefined)
                 return res.json({
                     "status": "false",
                     "message": "user not found"
                 });
             else {
-                var token = jwt.sign({role : response.role}, "salt")
+                var token = jwt.sign({"status": "true",
+                    "role": response.role,
+                    "meassage": "logged in"}, auth.secret)
                 return res.json({
                     "status": "true",
                     "role": response.role,
                     "meassage": "logged in",
-                    // "token" : token
+                    "token" : token
 
                 });
                 console.log(a);
@@ -624,7 +627,7 @@ let mailOptions = {
     from: '"kartik chawla" <kchawla1995@gmail.com>', // sender address
     to: req.body.email, // list of receivers
     subject: 'welcome', // Subject line
-    text: 'you have just signed up for manga click on the link to verify your email' + url, // plain text body
+    text: 'you have just signed up for manga click on the link to verify your email http://192.168.15.38:4200/verifyemail' // plain text body
 //   html : <a href = 'url' >click here to verify</a>
 }
 

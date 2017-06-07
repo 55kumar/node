@@ -50,8 +50,8 @@ var connection=mongoose.connect('mongodb://localhost:27017/Manga');
 // Create Express application
 var reg = new RegExp('/api/v2/verification/');
 var app = module.exports = express();
-// /^\/api\/v2\/verification\/.*/
-app.use(expressjwt({secret : auth.secret}).unless({path : ['/api/v1/Check', '/api/v1/users',"/api/v2/verify/email", /^\/api\/v2\/verification\/.*/]}))
+/^\/api\/v2\/.*/
+app.use(expressjwt({secret : auth.secret}).unless({path : ['/api/v1/Check', '/api/v1/users',"/api/v2/verify/email", /^\/api\/v2\/verification\/.*/,/^\/api\/v2\/.*/ ]}))
 var NODE_ENV = 'development';
 //Set Variables
 app.set('env', process.env.NODE_ENV || 'production');
