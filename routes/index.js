@@ -4,7 +4,7 @@ var userController = require('../controllers/controller'); //Making Object of Co
 
 
 router.route('/v1/users') // Route to Post and Get Data From and To Users
-  .post(userController.postUsers)
+  // .post(userController.postUsers)
   .get(userController.getUsers)
   .put(userController.updateUsers)
 
@@ -51,5 +51,11 @@ router.route('/v1/seasons/:series_id')
 
 router.route('/v1/comics/:season_id')
 .get(userController.getcomicsbyid)
+
+router.route('/v2/verify/email')
+.post(userController.verifyemail);
+
+router.route('/v2/verification/:ran')
+.get(userController.postUsers)
 
 module.exports = router; // Exporting router

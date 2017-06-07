@@ -15,6 +15,9 @@ var UserSchema = new Schema({
     },
     id: {
         type: Number
+    },
+    verified : {
+        type : Boolean
     }
 
 });

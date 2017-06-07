@@ -5,6 +5,9 @@ var Seasons = require("../models/season");
 var Series = require("../models/series");
 var md5 = require('md5');
 var jwt = require('jsonwebtoken');
+var email = require ('../email.json');
+const nodemailer = require('nodemailer');
+var temp = require('../models/tempuseres')
 
 exports.SearchData = function (req, res) {
     console.log(req.params.reg);
@@ -25,23 +28,22 @@ exports.SearchData = function (req, res) {
 };
 
 exports.postUsers = function (req, res) { // Function to Post the Data in Users Collection of Database
-    User.find({}, function (err, response) { // Function to Find all the Users from collection 
+    var ran = req.params.ran;
+    temp.findOne({random : ran}, function (err, response) { // Function to Find all the Users from collection 
         if (err) {
             return res.json(req, res, err);
         }
-        a = response[0].id
-
+else{
         var user = new User({ // Making Object of Users schema 
-            email: req.body.email,
-            password: md5(req.body.password),
-            role: req.body.role,
-            id: a + 1,
+            email: response.email,
+            password: md5(response.password),
+            role: response.role,
+            id: response.id,
+            verified : true
 
 
         });
         console.log(user);
-
-
 
         user.save(function (err, response) { // Saving the Data into the Database
             if (err) {
@@ -55,12 +57,10 @@ exports.postUsers = function (req, res) { // Function to Post the Data in Users 
 
         });
 
+}
 
-
-    }).sort({
-        id: -1
-    }).limit(1);
-};
+    })
+}
 
 exports.CheckUsers = function (req, res) {
     username1 = req.body.username;
@@ -86,7 +86,7 @@ exports.CheckUsers = function (req, res) {
                     "status": "true",
                     "role": response.role,
                     "meassage": "logged in",
-                    "token" : token
+                    // "token" : token
 
                 });
                 console.log(a);
@@ -600,3 +600,83 @@ exports.updatecomics = function (req, res) {
         })
     })
 }
+
+exports.verifyemail = function (req, res) {
+
+ var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for( var i=0; i < 5; i++ )
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+randomise = text; 
+// create reusable transporter object using the default SMTP transport
+var transporter = nodemailer.createTransport({ 
+    service: 'Gmail',
+    host: 'smtpout.secureserver.net', 
+    port: 465, 
+    auth: { user: email.user, pass: email.pass },
+    secure: true
+});
+url = "http://localhost:4000/api/v2/verification/" + randomise;
+// setup email data with unicode symbols
+let mailOptions = {
+    from: '"kartik chawla" <kchawla1995@gmail.com>', // sender address
+    to: req.body.email, // list of receivers
+    subject: 'welcome', // Subject line
+    text: 'you have just signed up for manga click on the link to verify your email' + url, // plain text body
+//   html : <a href = 'url' >click here to verify</a>
+}
+
+// send mail with defined transport object
+transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+        return console.log(error);
+    }
+    console.log('Message %s sent: %s', info.messageId, info.response);
+});
+
+
+temp.find({}, function (err, response) { // Function to Find all the Users from collection 
+        if (err) {
+            return res.json(req, res, err);
+        }
+        a =  response[0].id
+
+        var tempuser = new temp({ // Making Object of Users schema 
+            email: req.body.email,
+            password: req.body.password,
+            role: req.body.role,
+            verified : false,
+            id: a + 1,
+            random : randomise
+
+
+        });
+        // console.log(user);
+
+        tempuser.save(function (err, response) { // Saving the Data into the Database
+            if (err) {
+                return res.json(req, res, err);
+            }
+
+            res.json({
+                success: true,
+                body: response
+            })
+
+        });
+
+
+
+    }).sort({
+        id: -1
+    }).limit(1);
+};
+
+
+
+
+
+
+
